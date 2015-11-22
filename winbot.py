@@ -42,26 +42,43 @@ twitter_stream = TwitterStream(auth=oauth)
 ### Create iterator for all 
 iterator = twitter_stream.statuses.filter(track="RT win", language="en", retweeted="false")
 
-tweet_count = 100
+tweet_count = 2500
 retweet_fail = 0
 retweet_success = 0
+
+### Iterate through all tweets meeting search conditions ###
 for tweet in iterator:
     tweet_count -= 1
-    tweet_id = tweet['id_str']
+    tweet_id = str(tweet['id']) # this sometimes seems to throw an error tweet['id_str']
     tweet_str = tweet['text']
-    print (json.dumps(tweet_id))
-    print (json.dumps(tweet_str))
 
     ### Retweet competition tweet ###
     try:
+        # TODO figure out a way to see that people don't have 'retweets' that aren't classed
+        # as 'retweets', perhaps by identifying usernames in tweets and checking that
+        # against the user screen_name
+
         api.retweet(tweet_id)
         retweet_success += 1
+
+        # Show Tweet re-tweeted only if re-tweeted successfully
+        print (json.dumps(tweet_id))
+        print (json.dumps(tweet_str))
+        print ()
+
+        # Follow a user for a competition if needed
+        tweet_str = tweet_str.lower()
+        if 'follow' in tweet_str or 'follows' in tweet_str:
+            user_id = tweet['user']['id']
+            screen_name = tweet['user']['screen_name']
+            api.create_friendship(user_id)
+            print('Created friendship with user ' + screen_name)
+
     except tweepy.error.TweepError as e:
         retweet_fail += 1
-        print (e)
 
-    print ()
     if tweet_count <= 0:
         break
 
-print (str(retweet_fail) + ' retwee fails.')
+print (str(retweet_success) + 'retweet successes.')
+print (str(retweet_fail) + ' retweet fails.')
