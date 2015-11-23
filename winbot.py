@@ -10,10 +10,11 @@ from twitter import Twitter, OAuth, TwitterHTTPError, TwitterStream
 def retweet_url(tweet_id):
     return "https://api.twitter.com/1.1/statuses/retweet/" + tweet_id + ".json"
 
+#TODO following the wrong users...FIX
 ### Follows a user if a competition tweet requires it
 def follow_user(tweet_str):
-    tweet_str = tweet_str.lower()
-    follow_strs = ["follow", "follows", "Follow", "follows", "foll", "flw", "follo"]
+    tweet_str = tweet['text'].lower()
+    follow_strs = ["follow", "follows", "Follow", "follows", "foll", "flw", "follo", "F &"]
     if any(x in tweet_str for x in follow_strs):
         user_id = tweet['user']['id']
         screen_name = tweet['user']['screen_name']
@@ -35,6 +36,8 @@ def strip_copied_tweets(tweet_text):
 
 ### Perform a retweet given a tweet
 def retweet(tweet):
+    if "MTV" in tweet['text']:
+        return
     try:
         api.retweet(tweet['id'])
 
@@ -45,7 +48,10 @@ def retweet(tweet):
         print ()
     
         # Follow a user for a competition if needed
-        follow_user(tweet['text'])
+        follow_user(tweet)
+
+        #TODO like tweet if needed
+
     except tweepy.error.TweepError as e:
         pass
 
@@ -117,17 +123,21 @@ for tweet in tweets:
         new_tweet_str = strip_copied_tweets(tweet_str)
 
         # Search filter
-        secondary_tweets = twitter.search.tweets(q=new_tweet_str, lang='en', count=101, retweeted=False)['statuses']
+        try:
+            secondary_tweets = twitter.search.tweets(q=new_tweet_str, lang='en', count=101, retweeted=False)['statuses']
+        except tweepy.error.TweepError as e:
+            print (e)
+            sys.exit(0)
 
         for s_tweet in secondary_tweets:
             if 'id_str' not in s_tweet:
                 continue
-            if s_tweet["favorite_count"] > 1:
+            if s_tweet["favorite_count"] > 2:
                 retweet(s_tweet)
         continue
-
-    ### Retweet competition tweet ###
-    retweet(tweet)
+    else:
+        ### Retweet competition tweet ###
+        retweet(tweet)
 
 print (str(retweet_success) + ' retweet successes.')
 print (str(retweet_fail) + ' retweet fails.')
