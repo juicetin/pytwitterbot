@@ -12,9 +12,9 @@ def retweet_url(tweet_id):
 
 #TODO following the wrong users...FIX
 ### Follows a user if a competition tweet requires it
-def follow_user(tweet_str):
+def follow_user(tweet):
     tweet_str = tweet['text'].lower()
-    follow_strs = ["follow", "follows", "Follow", "follows", "foll", "flw", "follo", "F &"]
+    follow_strs = ["follow", "follows", "Follow", "follows", "foll", "flw", "follo", "F &", "F&", "& F", "&F"]
     if any(x in tweet_str for x in follow_strs):
         user_id = tweet['user']['id']
         screen_name = tweet['user']['screen_name']
