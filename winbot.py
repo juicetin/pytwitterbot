@@ -154,8 +154,13 @@ if __name__ == "__main__":
         tweets = twitter_stream.statuses.filter(track=filter_string, language="en", retweeted="false")
 
     # TODO find a way to use rate limits to automatically resume use of secondary searches
-    # rate_info = api.rate_limit_status();
-    # print (rate_info)
+    rate_info = api.rate_limit_status();
+    print (rate_info['resources']['search']['/search/tweets']['remaining'])
+    print (rate_info['resources']['search']['/search/tweets'])
+    print (rate_info)
+    if rate_info['resources']['search']['/search/tweets']['remaining'] == 0:
+        print ('You currently have 0 searches left - please try again later')
+        sys.exit(0)
 
     ##########################################################
     ############### Iterate through all tweets ###############
@@ -163,19 +168,18 @@ if __name__ == "__main__":
     for tweet in tweets:
         tweet_count -= 1
         
-        # Skip unwanted tweets
-        unwanted = ['MTV', 'Bieber', 'fuck', 'pussy', 'if you think'];
-        if any(x in tweet['text'] for x in unwanted):
-            continue
-
-    
         # Skip broken JSON objects
         if 'id_str' in tweet:
             tweet_id = tweet['id_str'] # this sometimes seems to throw an error tweet['id_str']
         else:
             continue
+
         tweet_str = tweet['text']
-    
+
+        # Skip unwanted tweets
+        unwanted = ['MTV', 'Bieber', 'fuck', 'pussy', 'if you think'];
+        if any(x in tweet_str for x in unwanted):
+            continue
     
         # Filter out 'copied' 'retweets'
         if tweet["favorite_count"] < 2:
@@ -205,9 +209,11 @@ if __name__ == "__main__":
                     retweet(s_tweet)
                     success_tweets += 1
 
-            # Log bad tweets, TODO find patterns to exclude these in future
-            if success_tweets == 0:
-                with open('rejected_tweets.txt', 'a') as f: f.write(s_tweet['text'] + '\n')
+            # NOTE - unreliable method - 'bad' tweets include good ones I've already retweeted and hence fail.
+            # # Log bad tweets, TODO find patterns to exclude these in future
+            # if success_tweets == 0 :
+            #     with open('rejected_tweets.txt', 'a') as f: f.write(tweet_str + '\n')
+            #     #print (tweet)
             continue
 
         # Directly retweet original competition tweets
