@@ -39,6 +39,7 @@ def follow_user(tweet):
         screen_name = tweet['user']['screen_name']
         api.create_friendship(user_id)
         print('Created friendship with user ' + screen_name)
+        with open('following.txt', 'a') as f: f.write(screen_name + '\n')
 ##########################################################
 
 
@@ -49,15 +50,22 @@ def follow_user(tweet):
 # note: maybe not, as some 'copied' retweets don't necessarily follow this structure.
 #       perhaps safer to keep current approach of simply searching on remaining string
 def strip_copied_tweets(tweet_text):
-    colon_index = tweet_text.find(':')
-    tweet_text = tweet_text[colon_index+2:]
-    if '&amp;' in tweet_text:
-        rt_index = tweet_text.find('RT &amp;')
-        tweet_text = tweet_text[rt_index+8:]
-    tweet_text_words = tweet_text.split(' ')
-    if len(tweet_text_words) >= 11:
-        tweet_text_words = tweet_text_words[1:10]
-    tweet_text = ' '.join(tweet_text_words)
+    while (tweet_text.startswith("RT")):
+        colon_index = tweet_text.find(':')
+        if colon_index == -1:
+            colon_index = 0
+        tweet_text = tweet_text[colon_index+2:]
+        tweet_text_parts = tweet_text.split("http")
+        tweet_text = tweet_text_parts[0]
+    # if '&amp;' in tweet_text:
+    #     rt_index = tweet_text.find('RT &amp;')
+    #     tweet_text = tweet_text[rt_index+8:]
+
+    # tweet_text_words = tweet_text.split(' ')
+    # if len(tweet_text_words) >= 11:
+    #     tweet_text_words = tweet_text_words[-2]
+    # tweet_text = ' '.join(tweet_text_words)
+
     return tweet_text
 ##########################################################
 
@@ -71,6 +79,7 @@ def favorite_tweet(tweet):
     if any(x in tweet_str for x in fav_strs):
         tweet_id = tweet['id_str']
         api.create_favorite(tweet_id)
+        print ('Tweet liked.')
 ##########################################################
 
 
@@ -78,11 +87,6 @@ def favorite_tweet(tweet):
 ############## Perform a retweet given a tweet
 ##########################################################
 def retweet(tweet):
-
-    # Skip unwanted tweets
-    unwanted = ['MTV', 'Bieber'];
-    if any(x in tweet['text'] for x in unwanted):
-        return
 
     # Retweet
     try:
@@ -93,6 +97,7 @@ def retweet(tweet):
         print ('user name:  ' + json.dumps(tweet['user']['screen_name']))
         print ('tweet text: ' + json.dumps(tweet['text']))
         print ('fav count:  ' + json.dumps(tweet['favorite_count']))
+        print ('retweets:   ' + json.dumps(tweet['retweet_count']))
     
         # Follow a user for a competition if needed
         follow_user(tweet)
@@ -118,7 +123,7 @@ if __name__ == "__main__":
     ### Tweepy authentication
     auth = tweepy.auth.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
     auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
-    api = tweepy.API(auth)
+    api = tweepy.API(auth_handler=auth)
     
     # TODO aim to remove and use tweepy library
     ### Twitter (library) authentication
@@ -148,11 +153,21 @@ if __name__ == "__main__":
     else:
         tweets = twitter_stream.statuses.filter(track=filter_string, language="en", retweeted="false")
 
+    # TODO find a way to use rate limits to automatically resume use of secondary searches
+    # rate_info = api.rate_limit_status();
+    # print (rate_info)
+
     ##########################################################
     ############### Iterate through all tweets ###############
     ##########################################################
     for tweet in tweets:
         tweet_count -= 1
+        
+        # Skip unwanted tweets
+        unwanted = ['MTV', 'Bieber', 'fuck', 'pussy', 'if you think'];
+        if any(x in tweet['text'] for x in unwanted):
+            continue
+
     
         # Skip broken JSON objects
         if 'id_str' in tweet:
@@ -174,13 +189,25 @@ if __name__ == "__main__":
             except:
                 print ('Rate limit exceeded due to allowed searches within ~15 minute time frame. Please try again later.')
                 sys.exit(0)
+
+            # Print info on secondary search
+            # print ('Original tweet: ' + tweet_str)
+            # print ('New search str: ' + new_tweet_str)
+            # print ('Number of search results on new str: ' + str(len(secondary_tweets)))
+            # print ()
     
             # Go through each secondary tweet
+            success_tweets = 0
             for s_tweet in secondary_tweets:
                 if 'id_str' not in s_tweet:
                     continue
                 if s_tweet["favorite_count"] > 2:
                     retweet(s_tweet)
+                    success_tweets += 1
+
+            # Log bad tweets, TODO find patterns to exclude these in future
+            if success_tweets == 0:
+                with open('rejected_tweets.txt', 'a') as f: f.write(s_tweet['text'] + '\n')
             continue
 
         # Directly retweet original competition tweets
