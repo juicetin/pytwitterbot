@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 try:
     import json
 except ImportError:
@@ -75,7 +77,8 @@ def strip_copied_tweets(tweet_text):
 ##########################################################
 def favorite_tweet(tweet):
     tweet_str = tweet['text']
-    fav_strs = ["favorite", "like", "fave", "fav", "fvrt", "fvrite"]
+    tweet_str = tweet_str.lower()
+    fav_strs = ["favorite", "like", "fave", "fav", "fvrt", "fvrite", "LK ", " LK"]
     if any(x in tweet_str for x in fav_strs):
         tweet_id = tweet['id_str']
         api.create_favorite(tweet_id)
@@ -87,6 +90,11 @@ def favorite_tweet(tweet):
 ############## Perform a retweet given a tweet
 ##########################################################
 def retweet(tweet):
+
+    # Skip unwanted tweets
+    unwanted = ['MTV', 'Bieber', 'fuck', 'pussy', 'if you think', 'help me win'];
+    if any(x in tweet_str for x in unwanted):
+        return
 
     # Retweet
     try:
@@ -137,7 +145,6 @@ if __name__ == "__main__":
     # myStream.filter(track=['RT'], async=True)
     
     # Counter initialisation
-    tweet_count = 2500
     retweet_fail = 0
     retweet_success = 0
     retweet_should_succeeds = 0
@@ -153,20 +160,20 @@ if __name__ == "__main__":
     else:
         tweets = twitter_stream.statuses.filter(track=filter_string, language="en", retweeted="false")
 
-    # TODO find a way to use rate limits to automatically resume use of secondary searches
-    rate_info = api.rate_limit_status();
-    print (rate_info['resources']['search']['/search/tweets']['remaining'])
-    print (rate_info['resources']['search']['/search/tweets'])
-    print (rate_info)
-    if rate_info['resources']['search']['/search/tweets']['remaining'] == 0:
-        print ('You currently have 0 searches left - please try again later')
-        sys.exit(0)
+    # # TODO find a way to use rate limits to automatically resume use of secondary searches
+    # NOTE twitter API for this endpoint seems to have eventually consistent data. Doesn't/can't work as expected.
+    # rate_info = api.rate_limit_status();
+    # print (rate_info['resources']['search']['/search/tweets']['remaining'])
+    # print (rate_info['resources']['search']['/search/tweets'])
+    # print (rate_info)
+    # if rate_info['resources']['search']['/search/tweets']['remaining'] == 0:
+    #     print ('You currently have 0 searches left - please try again later')
+    #     sys.exit(0)
 
     ##########################################################
     ############### Iterate through all tweets ###############
     ##########################################################
     for tweet in tweets:
-        tweet_count -= 1
         
         # Skip broken JSON objects
         if 'id_str' in tweet:
@@ -222,6 +229,5 @@ if __name__ == "__main__":
             retweet(tweet)
     ##########################################################
     
-    print (str(retweet_success) + ' retweet successes.')
-    print (str(retweet_fail) + ' retweet fails.')
-    print (len(tweets))
+    # print (str(retweet_success) + ' retweet successes.')
+    # print (str(retweet_fail) + ' retweet fails.')
