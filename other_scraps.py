@@ -48,3 +48,13 @@
 #if tweet_count <= 0:
 #    break
 
+# # TODO find a way to use rate limits to automatically resume use of secondary searches
+# NOTE twitter API for this endpoint seems to have eventually consistent data. Doesn't/can't work as expected.
+# rate_info = api.rate_limit_status();
+# print (rate_info['resources']['search']['/search/tweets']['remaining'])
+# print (rate_info['resources']['search']['/search/tweets'])
+# print (rate_info)
+# if rate_info['resources']['search']['/search/tweets']['remaining'] == 0:
+#     print ('You currently have 0 searches left - please try again later')
+#     sys.exit(0)
+
