@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 try:
     import json
@@ -15,10 +15,10 @@ CONSUMER_KEY = 'tPOa8XtMxtf7wbaAvHu1icj78'
 CONSUMER_SECRET= 'pl6aM41c4gT41Jo0B1EWZLFPuNTuRFlxex6yUaGEAAFxL3TAap'
 
 # Globals
-following_file_path = '/home/justinting/programming/twitter-winbot/following.txt'
+following_file_path = '/home/pi/twitter_competition_bot/following.txt'
 following_list = []
 following_file_opened = False
-retweets_file_path = '/home/justinting/programming/twitter-winbot/retweets.txt'
+retweets_file_path = '/home/pi/twitter_competition_bot/retweets.txt'
 unwanted_keywords = ['MTV', 'Bieber', 'fuck', 'pussy', 'if you think', 'help me win'];
 fav_strs = ["favorite", "like", "fave", "fav", "fvrt", "fvrite", "LK ", " LK"]
 
