@@ -7,12 +7,15 @@ except ImportError:
 
 import tweepy, sys, urllib
 from twitter import Twitter, OAuth, TwitterHTTPError, TwitterStream
+import dotenv
+
+dotenv.load_dotenv(dotenv.find_dotenv())
 
 ### User-specific details ###
-ACCESS_TOKEN= '34480377-tdxPPEkuHXN9dXJT1xXS7vaLymRzQZ9mCa4PXINrS'
-ACCESS_SECRET= 'ZfTnmi7fydT7LIUSbsob0e6f4LKrPp5QLdlRyIiFwLyHp'
-CONSUMER_KEY = 'tPOa8XtMxtf7wbaAvHu1icj78'
-CONSUMER_SECRET= 'pl6aM41c4gT41Jo0B1EWZLFPuNTuRFlxex6yUaGEAAFxL3TAap'
+ACCESS_TOKEN=os.environ.get('ACCESS_TOKEN')
+ACCESS_SECRET=os.environ.get('ACCESS_SECRET')
+CONSUMER_KEY=os.environ.get('CONSUMER_KEY')
+CONSUMER_SECRET=os.environ.get('CONSUMER_SECRET')
 
 # Globals
 following_file_path = '/home/pi/twitter_competition_bot/following.txt'
